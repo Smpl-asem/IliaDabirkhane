@@ -19,10 +19,13 @@ public class UserController : Controller
     [HttpPost]
     public IActionResult Register(DtodUser user)
     {
+        if(user.IsNullOrEmpty()){
+            return Ok("Complete Data Pls");
+        }
         Users check = db.Users_tbl.FirstOrDefault(x => x.Username == user.Username || x.NatinalCode == user.NatinalCode || x.Phone == user.Phone);
         if (check != null)
         {
-            if (check.Username == user.Username)
+            if (check.Username == user.Username.ToLower())
             {
                 return Ok("Invalid Username");
             }
@@ -50,7 +53,7 @@ public class UserController : Controller
         };
         db.Users_tbl.Add(NewUser);
         db.SaveChanges();
-        CreateUserLog((int)NewUser.Id, 3, true, 3);
+        CreateUserLog((int)NewUser.Id, 3, true);
         return Ok("Succesful !");
     }
 
@@ -64,12 +67,12 @@ public class UserController : Controller
         }
         else if (!BCrypt.Net.BCrypt.Verify(Password + salt + Username.ToLower(), check.Password))
         {
-            CreateUserLog((int)check.Id, 1, false, 3);
+            CreateUserLog((int)check.Id, 1, false);
             return Ok("Invalid Password !");
         }
         else
         {
-            CreateUserLog((int)check.Id, 1, true, 4);
+            CreateUserLog((int)check.Id, 1, true);
             return Ok(CreateToken(Username.ToLower()));
         }
     }
@@ -93,7 +96,7 @@ public class UserController : Controller
             if (DateTime.Now.AddMinutes(-10) < request.CreateDateTime)
             {
 
-                CreateUserLog((int)check.Id, 4, false, 3, "spam");
+                CreateUserLog((int)check.Id, 4, false);
 
                 return Ok("you Must Wait about 10 min");
             }
@@ -114,7 +117,7 @@ public class UserController : Controller
         db.sms_tbl.Add(newSms);
         db.SaveChanges();
 
-        CreateUserLog((int)check.Id, 4, true, 3);
+        CreateUserLog((int)check.Id, 4, true);
 
         return Ok(SmsCode(newSms.SmsCode, check.Phone)
         );
@@ -137,7 +140,7 @@ public class UserController : Controller
         smsUser smsCheck = db.sms_tbl.FirstOrDefault(x => x.UserId == check.Id);
         if (smsCheck == null)
         {
-            CreateUserLog((int)check.Id, 5, false, 5, "Try Without Code");
+            CreateUserLog((int)check.Id, 5, false);
             return Ok("Haven't Code Requset. try Reset First");
 
         }
@@ -145,7 +148,7 @@ public class UserController : Controller
         { //Time Passed
             db.sms_tbl.Remove(smsCheck);
             db.SaveChanges();
-            CreateUserLog((int)check.Id, 5, false, 5, "Code Expire");
+            CreateUserLog((int)check.Id, 5, false);
             return Ok("Code Time Expire ... Try again");
         }
         else if (smsCheck.IsValid == true)
@@ -156,7 +159,7 @@ public class UserController : Controller
                 db.Users_tbl.Update(check);
                 db.sms_tbl.Remove(smsCheck);
                 db.SaveChanges();
-                CreateUserLog((int)check.Id, 5, true, 2);
+                CreateUserLog((int)check.Id, 5, true);
                 return Ok("Sucssesful");
             }
             else
@@ -167,13 +170,13 @@ public class UserController : Controller
                     ++smsCheck.TryCount;
                 db.sms_tbl.Update(smsCheck);
                 db.SaveChanges();
-                CreateUserLog((int)check.Id, 5, false, 3, "Wrong Code.");
+                CreateUserLog((int)check.Id, 5, false);
                 return Ok("Code is Invalid");
             }
         }
         else
         {
-            CreateUserLog((int)check.Id, 5, false, 5, "Spam");
+            CreateUserLog((int)check.Id, 5, false);
             return Ok("you Must Try 10 min later.");
         }
 
@@ -191,6 +194,7 @@ public class UserController : Controller
         check.Profile = Uploadimage.Upload(Data.Profile);
         db.Users_tbl.Update(check);
         db.SaveChanges();
+        CreateUserLog((int)check.Id,6,true);
         return Ok("Done !");
     }
 
@@ -225,28 +229,14 @@ public class UserController : Controller
         return $"{Code} Sent to {Phone} .";
     }
 
-    private void CreateUserLog(int UserId, int LogAction, bool isSucces, int Priority)
+    private void CreateUserLog(int UserId, int LogAction, bool isSucces)
     {
         db.userLogs_tbl.Add(new UserLog
         {
             UserId = UserId,
             LogAction = LogAction,
             isSucces = isSucces,
-            Priority = Priority,
             CreateDateTime = DateTime.Now
-        });
-        db.SaveChanges();
-    }
-    private void CreateUserLog(int UserId, int LogAction, bool isSucces, int Priority, string Description)
-    {
-        db.userLogs_tbl.Add(new UserLog
-        {
-            UserId = UserId,
-            LogAction = LogAction,
-            isSucces = isSucces,
-            Priority = Priority,
-            CreateDateTime = DateTime.Now,
-            Description = Description
         });
         db.SaveChanges();
     }

@@ -431,3 +431,4 @@ C:\Users\a.semnani\Desktop\C#\New folder\Dabirkhane-master\obj\Debug\net8.0\refi
 C:\Users\a.semnani\Desktop\C#\New folder\Dabirkhane-master\obj\Debug\net8.0\IliaDabirkhane.pdb
 C:\Users\a.semnani\Desktop\C#\New folder\Dabirkhane-master\obj\Debug\net8.0\IliaDabirkhane.genruntimeconfig.cache
 C:\Users\a.semnani\Desktop\C#\New folder\Dabirkhane-master\obj\Debug\net8.0\ref\IliaDabirkhane.dll
+C:\Users\a.semnani\Desktop\C#\New folder\Dabirkhane-master\obj\Debug\net8.0\IliaDabirkhane.sourcelink.json

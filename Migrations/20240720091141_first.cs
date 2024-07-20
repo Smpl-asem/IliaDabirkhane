@@ -12,6 +12,36 @@ namespace IliaDabirkhane.Migrations
         protected override void Up(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.CreateTable(
+                name: "sms_tbl",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    SmsCode = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    TryCount = table.Column<int>(type: "int", nullable: false),
+                    UserId = table.Column<int>(type: "int", nullable: false),
+                    IsValid = table.Column<bool>(type: "bit", nullable: false),
+                    CreateDateTime = table.Column<DateTime>(type: "datetime2", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_sms_tbl", x => x.Id);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "smsTokens",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    Token = table.Column<string>(type: "nvarchar(max)", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_smsTokens", x => x.Id);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "Users_tbl",
                 columns: table => new
                 {
@@ -26,6 +56,7 @@ namespace IliaDabirkhane.Migrations
                     Addres = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     NatinalCode = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     PerconalCode = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    Profile = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     CreateDateTime = table.Column<DateTime>(type: "datetime2", nullable: true)
                 },
                 constraints: table =>
@@ -43,6 +74,8 @@ namespace IliaDabirkhane.Migrations
                     SenderUserId = table.Column<int>(type: "int", nullable: true),
                     Subject = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     BodyText = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    Trashed = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    Deleted = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     CreateDateTime = table.Column<DateTime>(type: "datetime2", nullable: true)
                 },
                 constraints: table =>
@@ -53,6 +86,28 @@ namespace IliaDabirkhane.Migrations
                         column: x => x.SenderUserId,
                         principalTable: "Users_tbl",
                         principalColumn: "Id");
+                });
+
+            migrationBuilder.CreateTable(
+                name: "userLogs_tbl",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    UserId = table.Column<int>(type: "int", nullable: false),
+                    LogAction = table.Column<int>(type: "int", nullable: false),
+                    isSucces = table.Column<bool>(type: "bit", nullable: false),
+                    CreateDateTime = table.Column<DateTime>(type: "datetime2", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_userLogs_tbl", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_userLogs_tbl_Users_tbl_UserId",
+                        column: x => x.UserId,
+                        principalTable: "Users_tbl",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateTable(
@@ -75,6 +130,34 @@ namespace IliaDabirkhane.Migrations
                         column: x => x.MessageId,
                         principalTable: "Messages_tbl",
                         principalColumn: "Id");
+                });
+
+            migrationBuilder.CreateTable(
+                name: "msgLog_tbl",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    MessageId = table.Column<int>(type: "int", nullable: false),
+                    UserId = table.Column<int>(type: "int", nullable: false),
+                    LogAction = table.Column<int>(type: "int", nullable: false),
+                    CreateDateTime = table.Column<DateTime>(type: "datetime2", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_msgLog_tbl", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_msgLog_tbl_Messages_tbl_MessageId",
+                        column: x => x.MessageId,
+                        principalTable: "Messages_tbl",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_msgLog_tbl_Users_tbl_UserId",
+                        column: x => x.UserId,
+                        principalTable: "Users_tbl",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateTable(
@@ -114,6 +197,16 @@ namespace IliaDabirkhane.Migrations
                 column: "SenderUserId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_msgLog_tbl_MessageId",
+                table: "msgLog_tbl",
+                column: "MessageId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_msgLog_tbl_UserId",
+                table: "msgLog_tbl",
+                column: "UserId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_Recivers_tbl_MessageId",
                 table: "Recivers_tbl",
                 column: "MessageId");
@@ -122,6 +215,11 @@ namespace IliaDabirkhane.Migrations
                 name: "IX_Recivers_tbl_ReciverId",
                 table: "Recivers_tbl",
                 column: "ReciverId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_userLogs_tbl_UserId",
+                table: "userLogs_tbl",
+                column: "UserId");
         }
 
         /// <inheritdoc />
@@ -131,7 +229,19 @@ namespace IliaDabirkhane.Migrations
                 name: "Attecheds_tbl");
 
             migrationBuilder.DropTable(
+                name: "msgLog_tbl");
+
+            migrationBuilder.DropTable(
                 name: "Recivers_tbl");
+
+            migrationBuilder.DropTable(
+                name: "sms_tbl");
+
+            migrationBuilder.DropTable(
+                name: "smsTokens");
+
+            migrationBuilder.DropTable(
+                name: "userLogs_tbl");
 
             migrationBuilder.DropTable(
                 name: "Messages_tbl");

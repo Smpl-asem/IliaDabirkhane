@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
+using Microsoft.VisualBasic;
 [Route("[Action]")]
 [ApiController]
 public class MessageController : Controller
@@ -51,6 +52,7 @@ public class MessageController : Controller
                         Type = item.Type,
                         CreateDateTime = DateTime.Now
                     });
+
                     CreateMsgLog(messageId, item.ReciverId, item.Type == "to" ? 4 : 5);
                 }
                 if (message.Atachments != null)
@@ -65,6 +67,7 @@ public class MessageController : Controller
                             FileType = item.FileType,
                             CreateDateTime = DateTime.Now
                         });
+
                     }
                 }
 
@@ -287,6 +290,16 @@ public class MessageController : Controller
                 })
             })
             .ToList();
+        foreach (var item in query)
+        {
+            foreach (var item2 in item.Recivers)
+            {
+                if (item2.ReciverId == userId && !db.msgLog_tbl.Any(x => x.UserId == userId && x.MessageId == item.Id && x.LogAction == 1))
+                {
+                    CreateMsgLog((int)item.Id, userId, 1);
+                }
+            }
+        }
 
         var pagedResponse = new PagedResponse<object>(pagedData, paginationFilter.PageNumber, paginationFilter.PageSize, totalPages, totalCount);
 
@@ -310,6 +323,7 @@ public class MessageController : Controller
         Check.Trashed.Add(userId);
         db.Messages_tbl.Update(Check);
         db.SaveChanges();
+        CreateMsgLog((int)Check.Id, userId, 7);
         return Ok("Successfull");
     }
 
@@ -327,6 +341,8 @@ public class MessageController : Controller
             Check.Trashed.Remove(userId);
             db.Messages_tbl.Update(Check);
             db.SaveChanges();
+            CreateMsgLog((int)Check.Id, userId, 8);
+
             return Ok("Successfull");
         }
         else if (Check.Deleted.Contains(userId))
@@ -349,6 +365,8 @@ public class MessageController : Controller
             Check.Deleted.Add(userId);
             db.Messages_tbl.Update(Check);
             db.SaveChanges();
+            CreateMsgLog((int)Check.Id, userId, 2);
+
             return Ok("Successfull");
         }
         else if (Check.Deleted.Contains(userId))
@@ -383,7 +401,7 @@ public class MessageController : Controller
         {
             MessageId = MessageId,
             UserId = UserId,
-            LogAction = 3,
+            LogAction = LogAction,
             CreateDateTime = DateTime.Now
         });
         db.SaveChanges();

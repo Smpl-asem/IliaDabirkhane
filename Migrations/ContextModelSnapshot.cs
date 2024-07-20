@@ -73,6 +73,10 @@ namespace IliaDabirkhane.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("MessageId");
+
+                    b.HasIndex("UserId");
+
                     b.ToTable("msgLog_tbl");
                 });
 
@@ -152,13 +156,7 @@ namespace IliaDabirkhane.Migrations
                     b.Property<DateTime?>("CreateDateTime")
                         .HasColumnType("datetime2");
 
-                    b.Property<string>("Description")
-                        .HasColumnType("nvarchar(max)");
-
                     b.Property<int>("LogAction")
-                        .HasColumnType("int");
-
-                    b.Property<int>("Priority")
                         .HasColumnType("int");
 
                     b.Property<int>("UserId")
@@ -168,6 +166,8 @@ namespace IliaDabirkhane.Migrations
                         .HasColumnType("bit");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("UserId");
 
                     b.ToTable("userLogs_tbl");
                 });
@@ -273,6 +273,25 @@ namespace IliaDabirkhane.Migrations
                     b.Navigation("Message");
                 });
 
+            modelBuilder.Entity("MessageLog", b =>
+                {
+                    b.HasOne("Messages", "Message")
+                        .WithMany()
+                        .HasForeignKey("MessageId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Users", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Message");
+
+                    b.Navigation("User");
+                });
+
             modelBuilder.Entity("Messages", b =>
                 {
                     b.HasOne("Users", "SenderUser")
@@ -295,6 +314,17 @@ namespace IliaDabirkhane.Migrations
                     b.Navigation("Message");
 
                     b.Navigation("Reciver");
+                });
+
+            modelBuilder.Entity("UserLog", b =>
+                {
+                    b.HasOne("Users", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("Messages", b =>
