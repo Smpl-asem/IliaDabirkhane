@@ -1,0 +1,6 @@
+@IliaDabirkhane_HostAddress = http://localhost:5167
+
+GET {{IliaDabirkhane_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
