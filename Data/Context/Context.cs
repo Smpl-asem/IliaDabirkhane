@@ -9,7 +9,11 @@ public class Context : DbContext
     public DbSet<smsUser> sms_tbl { get; set; }
     public DbSet<MessageLog> msgLog_tbl { get; set; }
     public DbSet<UserLog> userLogs_tbl { get; set; }
-    public DbSet<smsToken> smsTokens { get; set; }
+    public DbSet<smsToken> smsTokens { get; set; }    
+    public DbSet<Permission> Permission_tbl { get; set; }
+    public DbSet<Role> Role_tbl { get; set; }
+    public DbSet<RolePermission> RolePermissions_tbl { get; set; }
+    public DbSet<UserRole> UserRoles_tbl { get; set; }
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {

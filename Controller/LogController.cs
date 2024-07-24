@@ -1,8 +1,11 @@
+using System.Security.Claims;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
 [Route("[Action]")]
 [ApiController]
+[Authorize]
 public class LogController : Controller
 {
     private readonly Context db;
@@ -14,6 +17,9 @@ public class LogController : Controller
     [HttpGet]
     public IActionResult GetAllUserLog([FromQuery] PaginationFilter paginationFilter , int? LogAction)
     {
+        if(!UserController.roleReader(Convert.ToInt32(User.FindFirstValue("id")),db).Contains("readLogs")){
+            return Forbid();
+        }
         var query = db.userLogs_tbl.AsQueryable();
 
         if(LogAction.HasValue){//چک کردن بر اساس عملیات و اکشن
@@ -39,6 +45,7 @@ public class LogController : Controller
                     m.User.LastName,
                     m.User.Profile
                 },
+                
                 LogAction = userCodeToAction(m.LogAction, m.isSucces),
                 m.CreateDateTime
             })
@@ -50,6 +57,9 @@ public class LogController : Controller
     [HttpGet]
     public IActionResult GetAllUserLogOneLine([FromQuery] PaginationFilter paginationFilter , int? LogAction)
     {
+        if(!UserController.roleReader(Convert.ToInt32(User.FindFirstValue("id")),db).Contains("readLogs")){
+            return Forbid("Access denied");
+        }
         var query = db.userLogs_tbl.AsQueryable();
 
         if(LogAction.HasValue){//چک کردن بر اساس عملیات و اکشن
@@ -73,6 +83,9 @@ public class LogController : Controller
     [HttpGet]
     public IActionResult GetAllMessageLog([FromQuery] PaginationFilter paginationFilter , int? LogAction)
     {
+        if(!UserController.roleReader(Convert.ToInt32(User.FindFirstValue("id")),db).Contains("readLogs")){
+            return Forbid("Access denied");
+        }
         var query = db.msgLog_tbl.AsQueryable();
 
         if(LogAction.HasValue){//چک کردن بر اساس عملیات و اکشن
@@ -118,7 +131,7 @@ public class LogController : Controller
                         m.Message.SenderUser.Username,
                         m.Message.SenderUser.FirstName,
                         m.Message.SenderUser.LastName,
-                        m.Message.SenderUser.Profile,
+                        m.Message.SenderUser.Profile
                     },
                     Recivers = m.Message.Recivers.Select(x => new
                     {
@@ -148,6 +161,9 @@ public class LogController : Controller
     [HttpGet]
     public IActionResult GetAllMessageLogOneLine([FromQuery] PaginationFilter paginationFilter , int? LogAction)
     {
+        if(!UserController.roleReader(Convert.ToInt32(User.FindFirstValue("id")),db).Contains("readLogs")){
+            return Forbid("Access denied");
+        }
         var query = db.msgLog_tbl.AsQueryable();
 
         if(LogAction.HasValue){//چک کردن بر اساس عملیات و اکشن
@@ -162,7 +178,6 @@ public class LogController : Controller
                 .ThenInclude(x => x.Reciver)
         .Include(x => x.Message)
             .ThenInclude(x => x.Atteched);
-
 
         var totalCount = query.Count();
         var totalPages = (int)Math.Ceiling((double)totalCount / paginationFilter.PageSize);
@@ -180,6 +195,9 @@ public class LogController : Controller
     [HttpGet]
     public IActionResult GetOneUserLog([FromQuery] PaginationFilter paginationFilter, int UserId , int? LogAction)
     {
+        if(!UserController.roleReader(Convert.ToInt32(User.FindFirstValue("id")),db).Contains("readLogs")){
+            return Forbid("Access denied");
+        }
         var query = db.userLogs_tbl.AsQueryable();
 
         if(LogAction.HasValue){//چک کردن بر اساس عملیات و اکشن
@@ -218,6 +236,10 @@ public class LogController : Controller
     [HttpGet]
     public IActionResult GetOneUserLogOneLine([FromQuery] PaginationFilter paginationFilter, int UserId,int? LogAction)
     {
+        if(!UserController.roleReader(Convert.ToInt32(User.FindFirstValue("id")),db).Contains("readLogs")){
+            return Forbid("Access denied");
+        }
+
         var query = db.userLogs_tbl.AsQueryable();
 
         if(LogAction.HasValue){//چک کردن بر اساس عملیات و اکشن
@@ -259,6 +281,10 @@ public class LogController : Controller
     [HttpGet]
     public IActionResult GetOneMessageLog([FromQuery] PaginationFilter paginationFilter, int? UserId, int? MessageId , int? LogAction)
     {
+        if(!UserController.roleReader(Convert.ToInt32(User.FindFirstValue("id")),db).Contains("readLogs")){
+            return Forbid("Access denied");
+        }
+
         var query = db.msgLog_tbl.AsQueryable();
 
         if(LogAction.HasValue){//چک کردن بر اساس عملیات و اکشن
@@ -336,6 +362,9 @@ public class LogController : Controller
     [HttpGet]
     public IActionResult GetOneMessageLogOneLine([FromQuery] PaginationFilter paginationFilter, int? UserId, int? MessageId , int? LogAction)
     {
+        if(!UserController.roleReader(Convert.ToInt32(User.FindFirstValue("id")),db).Contains("readLogs")){
+            return Forbid("Access denied");
+        }
         var query = db.msgLog_tbl.AsQueryable();
 
         if(LogAction.HasValue){//چک کردن بر اساس عملیات و اکشن

@@ -10,6 +10,7 @@ public class Users : Parent
     public string? NatinalCode { get; set; }
     public string? PerconalCode { get; set; }
     public string? Profile { get; set; }
+    public List<UserRole> Roles { get; set; }
     
     public Users()
     {

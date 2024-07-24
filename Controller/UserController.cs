@@ -53,6 +53,14 @@ public class UserController : Controller
         };
         db.Users_tbl.Add(NewUser);
         db.SaveChanges();
+
+        db.UserRoles_tbl.Add(new UserRole{
+            UserId = (int)NewUser.Id,
+            RoleId = 2
+        });
+        db.SaveChanges();
+
+        CreateUserLog((int)NewUser.Id, 7, true);
         CreateUserLog((int)NewUser.Id, 3, true);
         return Ok("Succesful !");
     }
@@ -73,7 +81,7 @@ public class UserController : Controller
         else
         {
             CreateUserLog((int)check.Id, 1, true);
-            return Ok(CreateToken(Username.ToLower()));
+            return Ok(CreateToken(check.Username , check.Id.ToString()));
         }
     }
 
@@ -181,11 +189,30 @@ public class UserController : Controller
         }
 
     }
+
+    static public List<string> roleReader(int id , Context db){
+        List<string> results = new List<string>();
+        foreach (var RoleId in db.UserRoles_tbl
+            .Where(x => x.UserId == id)
+            .Select(x=> x.RoleId))
+        {
+            foreach (var PermissionId in db.RolePermissions_tbl.Where(y=> y.RoleId == RoleId).Select(x=> x.PermissionId))
+            {
+                results.Add(db.Permission_tbl.Find(PermissionId).Name);
+            }
+        }
+        return results ;
+    }
+
     [HttpPut]
     [Authorize]
     public IActionResult UpdateUser([FromQuery] DtoUpdateUser Data)
     {
-        Users check = db.Users_tbl.FirstOrDefault(x=>x.Username== User.FindFirstValue("username"));
+        if(!roleReader(Convert.ToInt32(User.FindFirstValue("id")),db).Contains("updateUserData")){
+            return Forbid("Access denied");
+        }
+
+        Users check = db.Users_tbl.Find(int.Parse(User.FindFirstValue("id")));
 
         check.Addres = Data.Addres;
         check.FirstName = Data.FirstName;
@@ -198,13 +225,14 @@ public class UserController : Controller
         return Ok("Done !");
     }
 
-    private string CreateToken(string Username)
+    private string CreateToken(string Username , string id)
     {
         SymmetricSecurityKey secretKey = new SymmetricSecurityKey(Encoding.Default.GetBytes("SymmetricSecurityKey secretKey Encoding.Default.GetBytes"));
         SigningCredentials Credentials = new SigningCredentials(secretKey, SecurityAlgorithms.HmacSha256);
 
         Claim[] claims = new Claim[]{
-            new Claim("username",Username)
+            new Claim("username",Username),
+            new Claim("id",id)
         };
 
         var token = new JwtSecurityToken(

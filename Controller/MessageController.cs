@@ -21,8 +21,13 @@ public class MessageController : Controller
 
 
     [HttpPost]
+    [Authorize]
     public IActionResult AddMessage(DtoMessage message)
     {
+        if(!UserController.roleReader(Convert.ToInt32(User.FindFirstValue("id")),db).Contains("sentEmail")){
+            return Forbid("Access denied");
+        }
+
         using (var transaction = db.Database.BeginTransaction())
         {
             try
@@ -215,11 +220,15 @@ public class MessageController : Controller
 
     [HttpGet]
     [Authorize]
+    
     public IActionResult GetAllMessageNew([FromQuery] MessageDetailsFilter messageFilter,
                                           [FromQuery] ReciverDetailsFilter reciverFilter,
                                           [FromQuery] AttachDetailsFilter attachFilter,
                                           [FromQuery] PaginationFilter paginationFilter)
     {
+        if(!UserController.roleReader(Convert.ToInt32(User.FindFirstValue("id")),db).Contains("readEmail")){
+            return Forbid("Access denied");
+        }
         int userId = (int)db.Users_tbl.FirstOrDefault(x => x.Username == User.FindFirstValue("username")).Id;
         var message3Filter = new messagefilter(userId);
         var query = db.Messages_tbl
@@ -310,6 +319,9 @@ public class MessageController : Controller
     [Authorize]
     public IActionResult TrashMessage(int MessageId)
     {
+         if(!UserController.roleReader(Convert.ToInt32(User.FindFirstValue("id")),db).Contains("deleteEmail")){
+            return Forbid("Access denied");
+        }
         Messages Check = db.Messages_tbl.Find(MessageId);
         int userId = (int)db.Users_tbl.FirstOrDefault(x => x.Username == User.FindFirstValue("username")).Id;
 
@@ -331,6 +343,9 @@ public class MessageController : Controller
     [Authorize]
     public IActionResult UnTrashMessage(int MessageId)
     {
+         if(!UserController.roleReader(Convert.ToInt32(User.FindFirstValue("id")),db).Contains("deleteEmail")){
+            return Forbid("Access denied");
+        }
         Messages Check = db.Messages_tbl.Find(MessageId);
         int userId = (int)db.Users_tbl.FirstOrDefault(x => x.Username == User.FindFirstValue("username")).Id;
 
@@ -354,6 +369,9 @@ public class MessageController : Controller
     [HttpDelete]
     public IActionResult DeleteMessage(int MessageId)
     {
+         if(!UserController.roleReader(Convert.ToInt32(User.FindFirstValue("id")),db).Contains("deleteEmail")){
+            return Forbid("Access denied");
+        }
         Messages Check = db.Messages_tbl.Find(MessageId);
         int userId = (int)db.Users_tbl.FirstOrDefault(x => x.Username == User.FindFirstValue("username")).Id;
 
@@ -379,6 +397,9 @@ public class MessageController : Controller
     [Authorize]
     public IActionResult GetIndexMessage([FromQuery] PaginationFilter page)
     {
+         if(!UserController.roleReader(Convert.ToInt32(User.FindFirstValue("id")),db).Contains("readEmail")){
+            return Forbid("Access denied");
+        }
         // =-=-=- برای استفاده کردن از توکن
         int userId = (int)db.Users_tbl.FirstOrDefault(x => x.Username == User.FindFirstValue("username")).Id;
         return GetAllMessageNew(new MessageDetailsFilter { Trash = false }, new ReciverDetailsFilter { ReciverId = userId }, new AttachDetailsFilter(), page);
@@ -388,10 +409,15 @@ public class MessageController : Controller
     [Authorize]
     public IActionResult GetSendMessage([FromQuery] PaginationFilter page)
     {
+         if(!UserController.roleReader(Convert.ToInt32(User.FindFirstValue("id")),db).Contains("readEmail")){
+            return Forbid("Access denied");
+        }
         // =-=-=- برای استفاده کردن از توکن
         int userId = (int)db.Users_tbl.FirstOrDefault(x => x.Username == User.FindFirstValue("username")).Id;
         return GetAllMessageNew(new MessageDetailsFilter { SenderUserId = userId, Trash = false }, new ReciverDetailsFilter(), new AttachDetailsFilter(), page);
     }
+
+    
 
 
     private void CreateMsgLog(int MessageId, int UserId, int LogAction)
